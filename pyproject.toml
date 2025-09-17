@@ -1,0 +1,24 @@
+[project]
+name = "openttd-bot"
+version = "0.1.0"
+description = "Helper bot for OpenTTD dedicated servers"
+readme = "README.md"
+authors = [{ name = "JobbeDeluxe" }]
+license = { file = "LICENSE" }
+requires-python = ">=3.11"
+dependencies = [
+    "pyOpenTTDAdmin>=1.0.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[build-system]
+requires = ["setuptools>=65", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+addopts = "-ra"
