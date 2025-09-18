@@ -50,9 +50,10 @@ class AdminMessenger:
     def _to_rcon_company_id(self, company_id: int) -> int:
         """Return the company identifier expected by RCON commands."""
 
-        # The admin API already uses the company numbering required by RCON
-        # commands, so no further conversion is necessary.
-        return company_id
+        # Company identifiers exposed by the admin protocol are zero-based,
+        # while RCON commands expect them to be one-based. Convert here so that
+        # callers can continue to use the admin identifiers everywhere else.
+        return company_id + 1
 
     def set_company_password(self, company_id: int, password: str) -> None:
         company_number = self._to_rcon_company_id(company_id)
