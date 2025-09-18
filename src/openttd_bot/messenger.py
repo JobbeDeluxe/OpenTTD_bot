@@ -48,25 +48,27 @@ class AdminMessenger:
         self._admin.send_rcon(f'name "{escaped}"')
 
     def _to_rcon_company_id(self, company_id: int) -> int:
-        """Return the 1-based company identifier expected by RCON commands."""
+        """Return the company identifier expected by RCON commands."""
 
-        return company_id + 1
+        # The admin API already uses the company numbering required by RCON
+        # commands, so no further conversion is necessary.
+        return company_id
 
     def set_company_password(self, company_id: int, password: str) -> None:
         company_number = self._to_rcon_company_id(company_id)
-        LOGGER.info("Setting password for company %s", company_number)
+        LOGGER.info("Setting password for company %s (RCON id %s)", company_id + 1, company_number)
         command = self._format_company_password_command(company_number, password)
         self._admin.send_rcon(command)
 
     def clear_company_password(self, company_id: int) -> None:
         company_number = self._to_rcon_company_id(company_id)
-        LOGGER.info("Clearing password for company %s", company_number)
+        LOGGER.info("Clearing password for company %s (RCON id %s)", company_id + 1, company_number)
         command = f"company_pw {company_number} \"\""
         self._admin.send_rcon(command)
 
     def reset_company(self, company_id: int) -> None:
         company_number = self._to_rcon_company_id(company_id)
-        LOGGER.info("Resetting company %s", company_number)
+        LOGGER.info("Resetting company %s (RCON id %s)", company_id + 1, company_number)
         self._admin.send_rcon(f"reset_company {company_number}")
 
     @staticmethod

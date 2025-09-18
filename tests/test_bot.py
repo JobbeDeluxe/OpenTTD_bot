@@ -34,13 +34,13 @@ class FakeMessenger:
         self.broadcasts.append(message)
 
     def set_company_password(self, company_id: int, password: str) -> None:
-        self.commands.append(("set_pw", company_id + 1, password))
+        self.commands.append(("set_pw", company_id, password))
 
     def clear_company_password(self, company_id: int) -> None:
-        self.commands.append(("clear_pw", company_id + 1, None))
+        self.commands.append(("clear_pw", company_id, None))
 
     def reset_company(self, company_id: int) -> None:
-        self.commands.append(("reset", company_id + 1, None))
+        self.commands.append(("reset", company_id, None))
 
     def reset_messages(self) -> None:
         self.private_messages.clear()
@@ -124,7 +124,7 @@ def test_password_private_sets_and_persists(bot):
     messenger.reset_messages()
     core.on_chat(make_chat(7, "!pw geheim", ChatDestTypes.CLIENT))
     assert state_store.get_company_password(2) == "geheim"
-    assert ("set_pw", 3, "geheim") in messenger.commands
+    assert ("set_pw", 2, "geheim") in messenger.commands
     assert messenger.private_messages[-1] == (7, "Passwort für Firma Firma 2 wurde gespeichert.")
 
 
@@ -136,7 +136,7 @@ def test_password_clear(bot):
     messenger.reset_messages()
     core.on_chat(make_chat(8, "!pw clear", ChatDestTypes.CLIENT))
     assert state_store.get_company_password(4) is None
-    assert ("clear_pw", 5, None) in messenger.commands
+    assert ("clear_pw", 4, None) in messenger.commands
     assert messenger.private_messages[-1] == (8, "Passwort für Firma Firma 4 wurde entfernt.")
 
 
@@ -148,7 +148,7 @@ def test_reset_and_confirm(bot):
     core.on_chat(make_chat(9, "!reset"))
     assert (9, "Du möchtest Firma Firma 6 zurücksetzen.") in messenger.private_messages
     core.on_chat(make_chat(9, "!confirm"))
-    assert ("reset", 7, None) in messenger.commands
+    assert ("reset", 6, None) in messenger.commands
     assert messenger.private_messages[-1] == (9, "Firma Firma 6 wurde zurückgesetzt.")
 
 
@@ -170,7 +170,7 @@ def test_reapply_password_on_company_info(bot):
     core.on_client_info(SimpleNamespace(id=13, name="Gina", company_id=12))
     messenger.reset_messages()
     core.on_company_info(SimpleNamespace(id=12, name="Firma 12", manager_name="", passworded=False))
-    assert ("set_pw", 13, "schutz") in messenger.commands
+    assert ("set_pw", 12, "schutz") in messenger.commands
     assert messenger.private_messages[-1] == (13, "Das gespeicherte Passwort für Firma Firma 12 wurde erneut gesetzt.")
 
 
@@ -179,5 +179,5 @@ def test_reapply_all_passwords(bot):
     state_store.set_company_password(20, "eins")
     state_store.set_company_password(21, "zwei")
     core.reapply_stored_passwords()
-    assert ("set_pw", 21, "eins") in messenger.commands
-    assert ("set_pw", 22, "zwei") in messenger.commands
+    assert ("set_pw", 20, "eins") in messenger.commands
+    assert ("set_pw", 21, "zwei") in messenger.commands
