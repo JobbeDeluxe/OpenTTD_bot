@@ -93,7 +93,11 @@ class BotCore:
         client.company_id = company_id
 
         if previous_company != company_id and company_id is not None:
-            LOGGER.info("Client %s joined company %s", client_id, company_id)
+            LOGGER.info(
+                "Client %s joined company %s",
+                client_id,
+                self._display_company_id(company_id),
+            )
             self._send_password_instructions(client)
 
     def on_company_info(self, packet: SimpleNamespace) -> None:
@@ -105,7 +109,11 @@ class BotCore:
             company = CompanyState(company_id=company_id)
             self.companies[company_id] = company
 
-        company.name = getattr(packet, "name", company.name or f"Firma #{company_id}")
+        company.name = (
+            getattr(packet, "name", None)
+            or company.name
+            or self._default_company_name(company_id)
+        )
         company.manager_name = getattr(packet, "manager_name", company.manager_name)
         passworded = bool(getattr(packet, "passworded", company.passworded))
         company.update_passworded(passworded)
@@ -118,7 +126,9 @@ class BotCore:
         if company_id is None:
             return
         company = self.companies.setdefault(company_id, CompanyState(company_id=company_id))
-        company.name = getattr(packet, "name", company.name)
+        name = getattr(packet, "name", None)
+        if name:
+            company.name = name
         passworded = bool(getattr(packet, "passworded", company.passworded))
         company.update_passworded(passworded)
         if not passworded:
@@ -128,7 +138,7 @@ class BotCore:
         company_id = getattr(packet, "id", None)
         if company_id is None:
             return
-        LOGGER.info("Company %s removed", company_id)
+        LOGGER.info("Company %s removed", self._display_company_id(company_id))
         self.companies.pop(company_id, None)
         self.state_store.clear_company_password(company_id)
         self._last_password_application.pop(company_id, None)
@@ -206,11 +216,10 @@ class BotCore:
                 self.messenger.send_private_lines(client.client_id, lines)
 
     def _send_password_instructions(self, client: ClientState) -> None:
-        company = self.companies.get(client.company_id or -1)
         context = {
             "client_name": client.name,
             "bot_name": self.config.bot_name,
-            "company_name": company.name if company else f"Firma #{client.company_id}",
+            "company_name": self._company_display_name(client.company_id),
         }
         lines = self.messages.get_lines("password_instructions", **context)
         if lines:
@@ -236,8 +245,7 @@ class BotCore:
             return
 
         company_id = client.company_id
-        company = self.companies.get(company_id)
-        company_name = company.name if company else f"Firma #{company_id}"
+        company_name = self._company_display_name(company_id)
 
         lowered = argument.lower()
         if lowered in {"clear", "reset", "remove", "delete", "none", "leer"}:
@@ -269,8 +277,7 @@ class BotCore:
             return
 
         self.pending_resets[client.client_id] = client.company_id
-        company = self.companies.get(client.company_id)
-        company_name = company.name if company else f"Firma #{client.company_id}"
+        company_name = self._company_display_name(client.company_id)
         lines = self.messages.get_lines("reset_prompt", company_name=company_name)
         if lines:
             self.messenger.send_private_lines(client.client_id, lines)
@@ -284,8 +291,7 @@ class BotCore:
             return
 
         if client.company_id != pending_company:
-            company = self.companies.get(pending_company)
-            company_name = company.name if company else f"Firma #{pending_company}"
+            company_name = self._company_display_name(pending_company)
             message = self.messages.get_message("reset_wrong_company", company_name=company_name)
             if message:
                 self.messenger.send_private(client.client_id, message)
@@ -294,8 +300,7 @@ class BotCore:
 
         self.pending_resets.pop(client.client_id, None)
         self.messenger.reset_company(pending_company)
-        company = self.companies.get(pending_company)
-        company_name = company.name if company else f"Firma #{pending_company}"
+        company_name = self._company_display_name(pending_company)
         message = self.messages.get_message("reset_confirmed", company_name=company_name)
         if message:
             self.messenger.send_private(client.client_id, message)
@@ -323,14 +328,20 @@ class BotCore:
         last = self._last_password_application.get(company_id)
         now = time.monotonic()
         if last is not None and now - last < 2.0:
-            LOGGER.debug("Skip password reapply for company %s due to cooldown", company_id)
+            LOGGER.debug(
+                "Skip password reapply for company %s due to cooldown",
+                self._display_company_id(company_id),
+            )
             return
-        LOGGER.info("Re-applying password for company %s (reason: %s)", company_id, reason)
+        LOGGER.info(
+            "Re-applying password for company %s (reason: %s)",
+            self._display_company_id(company_id),
+            reason,
+        )
         self._apply_company_password(company_id, password, notify=True)
 
     def _notify_company_members(self, company_id: int, message_key: str) -> None:
-        company = self.companies.get(company_id)
-        company_name = company.name if company else f"Firma #{company_id}"
+        company_name = self._company_display_name(company_id)
         lines = self.messages.get_lines(message_key, company_name=company_name)
         if not lines:
             return
@@ -342,7 +353,10 @@ class BotCore:
         """Reapply all stored passwords via RCON."""
 
         for company_id, password in self.state_store.iter_company_passwords():
-            LOGGER.info("Re-applying stored password for company %s", company_id)
+            LOGGER.info(
+                "Re-applying stored password for company %s",
+                self._display_company_id(company_id),
+            )
             self._apply_company_password(company_id, password, notify=True)
 
     # ------------------------------------------------------------------
@@ -356,3 +370,19 @@ class BotCore:
         if company_id == SPECTATOR_COMPANY_ID:
             return None
         return company_id
+
+    @staticmethod
+    def _default_company_name(company_id: int) -> str:
+        return f"Firma #{company_id + 1}"
+
+    @staticmethod
+    def _display_company_id(company_id: int) -> int:
+        return company_id + 1
+
+    def _company_display_name(self, company_id: Optional[int]) -> str:
+        if company_id is None:
+            return "Firma"
+        company = self.companies.get(company_id)
+        if company and company.name:
+            return company.name
+        return self._default_company_name(company_id)

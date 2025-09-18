@@ -38,19 +38,36 @@ class AdminMessenger:
         LOGGER.debug("Sending broadcast message")
         self._admin.send_global(message)
 
+    def set_admin_name(self, name: str) -> None:
+        """Update the server-side chat name used for admin messages."""
+
+        if not name:
+            return
+        escaped = name.replace("\\", "\\\\").replace('"', '\\"')
+        LOGGER.info("Setting admin chat name to %s", name)
+        self._admin.send_rcon(f'name "{escaped}"')
+
+    def _to_rcon_company_id(self, company_id: int) -> int:
+        """Return the 1-based company identifier expected by RCON commands."""
+
+        return company_id + 1
+
     def set_company_password(self, company_id: int, password: str) -> None:
-        LOGGER.info("Setting password for company %s", company_id)
-        command = self._format_company_password_command(company_id, password)
+        company_number = self._to_rcon_company_id(company_id)
+        LOGGER.info("Setting password for company %s", company_number)
+        command = self._format_company_password_command(company_number, password)
         self._admin.send_rcon(command)
 
     def clear_company_password(self, company_id: int) -> None:
-        LOGGER.info("Clearing password for company %s", company_id)
-        command = f"company_pw {company_id} \"\""
+        company_number = self._to_rcon_company_id(company_id)
+        LOGGER.info("Clearing password for company %s", company_number)
+        command = f"company_pw {company_number} \"\""
         self._admin.send_rcon(command)
 
     def reset_company(self, company_id: int) -> None:
-        LOGGER.info("Resetting company %s", company_id)
-        self._admin.send_rcon(f"reset_company {company_id}")
+        company_number = self._to_rcon_company_id(company_id)
+        LOGGER.info("Resetting company %s", company_number)
+        self._admin.send_rcon(f"reset_company {company_number}")
 
     @staticmethod
     def _format_company_password_command(company_id: int, password: str) -> str:
