@@ -227,23 +227,23 @@ class BotCore:
 
     def _handle_password_command(self, client: ClientState, argument: str, is_private: bool) -> None:
         if not is_private:
-            message = self.messages.get_message(
+            lines = self.messages.get_lines(
                 "password_whisper_only", bot_name=self.config.bot_name
             )
-            if message:
-                self.messenger.send_private(client.client_id, message)
+            if lines:
+                self.messenger.send_private_lines(client.client_id, lines)
             return
 
         if client.is_spectator or client.company_id is None:
-            message = self.messages.get_message("password_not_in_company")
-            if message:
-                self.messenger.send_private(client.client_id, message)
+            lines = self.messages.get_lines("password_not_in_company")
+            if lines:
+                self.messenger.send_private_lines(client.client_id, lines)
             return
 
         if not argument:
-            message = self.messages.get_message("password_missing_argument")
-            if message:
-                self.messenger.send_private(client.client_id, message)
+            lines = self.messages.get_lines("password_missing_argument")
+            if lines:
+                self.messenger.send_private_lines(client.client_id, lines)
             return
 
         company_id = client.company_id
@@ -254,28 +254,28 @@ class BotCore:
             self.messenger.clear_company_password(company_id)
             self.state_store.clear_company_password(company_id)
             self._last_password_application.pop(company_id, None)
-            message = self.messages.get_message("password_clear_success", company_name=company_name)
-            if message:
-                self.messenger.send_private(client.client_id, message)
+            lines = self.messages.get_lines("password_clear_success", company_name=company_name)
+            if lines:
+                self.messenger.send_private_lines(client.client_id, lines)
             return
 
         if any(ch in argument for ch in {"\n", "\r"}):
-            message = self.messages.get_message("password_invalid")
-            if message:
-                self.messenger.send_private(client.client_id, message)
+            lines = self.messages.get_lines("password_invalid")
+            if lines:
+                self.messenger.send_private_lines(client.client_id, lines)
             return
 
         self.state_store.set_company_password(company_id, argument)
         self._apply_company_password(company_id, argument, notify=False)
-        message = self.messages.get_message("password_set_success", company_name=company_name)
-        if message:
-            self.messenger.send_private(client.client_id, message)
+        lines = self.messages.get_lines("password_set_success", company_name=company_name)
+        if lines:
+            self.messenger.send_private_lines(client.client_id, lines)
 
     def _handle_reset_command(self, client: ClientState) -> None:
         if client.company_id is None:
-            message = self.messages.get_message("reset_not_in_company")
-            if message:
-                self.messenger.send_private(client.client_id, message)
+            lines = self.messages.get_lines("reset_not_in_company")
+            if lines:
+                self.messenger.send_private_lines(client.client_id, lines)
             return
 
         self.pending_resets[client.client_id] = client.company_id
@@ -287,35 +287,35 @@ class BotCore:
     def _handle_confirm_command(self, client: ClientState) -> None:
         pending_company = self.pending_resets.get(client.client_id)
         if pending_company is None:
-            message = self.messages.get_message("reset_no_pending")
-            if message:
-                self.messenger.send_private(client.client_id, message)
+            lines = self.messages.get_lines("reset_no_pending")
+            if lines:
+                self.messenger.send_private_lines(client.client_id, lines)
             return
 
         company_name = self._company_display_name(pending_company)
 
         if client.company_id == pending_company:
-            message = self.messages.get_message(
+            lines = self.messages.get_lines(
                 "reset_still_in_company", company_name=company_name
             )
-            if message:
-                self.messenger.send_private(client.client_id, message)
+            if lines:
+                self.messenger.send_private_lines(client.client_id, lines)
             return
 
         if client.company_id not in {None, pending_company}:
-            message = self.messages.get_message(
+            lines = self.messages.get_lines(
                 "reset_wrong_company", company_name=company_name
             )
-            if message:
-                self.messenger.send_private(client.client_id, message)
+            if lines:
+                self.messenger.send_private_lines(client.client_id, lines)
             self.pending_resets.pop(client.client_id, None)
             return
 
         self.pending_resets.pop(client.client_id, None)
         self.messenger.reset_company(pending_company)
-        message = self.messages.get_message("reset_confirmed", company_name=company_name)
-        if message:
-            self.messenger.send_private(client.client_id, message)
+        lines = self.messages.get_lines("reset_confirmed", company_name=company_name)
+        if lines:
+            self.messenger.send_private_lines(client.client_id, lines)
 
     # ------------------------------------------------------------------
     # Password helpers

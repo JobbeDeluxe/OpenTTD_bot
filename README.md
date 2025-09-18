@@ -37,17 +37,18 @@ Ein Python-Bot, der über den Admin-Port eines OpenTTD-Servers läuft und dabei 
 
 ### Konfiguration per Umgebung
 
-| Variable | Beschreibung | Standard |
-| --- | --- | --- |
-| `OTTD_HOST` | Hostname oder IP des OpenTTD-Servers | `127.0.0.1` |
-| `OTTD_ADMIN_PORT` | Admin-Port des Servers | `3977` |
-| `OTTD_ADMIN_PASSWORD` | Admin-Passwort des Servers (Pflicht) | – |
-| `BOT_NAME` | Name des Bots (erscheint im Chat) | `ServerBot` |
-| `COMMAND_PREFIX` | Präfix für Chatbefehle | `!` |
-| `STATE_FILE` | Speicherort für die persistenten Passwörter | `./state.json` |
-| `MESSAGES_FILE` | Pfad zur JSON-Datei mit Nachrichtentexten | `./messages.json` |
-| `STARTUP_REAPPLY_DELAY_SECONDS` | Verzögerung, bevor gespeicherte Passwörter nach dem Start neu gesetzt werden | `5` |
-| `RECONNECT_DELAY_SECONDS` | Wartezeit nach einem Fehler, bevor ein Reconnect versucht wird | `5` |
+
+| Variable                        | Beschreibung                                                                 | Standard          |
+|---------------------------------|------------------------------------------------------------------------------|-------------------|
+| `OTTD_HOST`                     | Hostname oder IP des OpenTTD-Servers                                         | `127.0.0.1`       |
+| `OTTD_ADMIN_PORT`               | Admin-Port des Servers                                                       | `3977`            |
+| `OTTD_ADMIN_PASSWORD`           | Admin-Passwort des Servers (Pflicht)                                         | –                 |
+| `BOT_NAME`                      | Name des Bots (erscheint im Chat)                                            | `ServerBot`       |
+| `COMMAND_PREFIX`                | Präfix für Chatbefehle                                                       | `!`               |
+| `STATE_FILE`                    | Speicherort für die persistenten Passwörter                                  | `./state.json`    |
+| `MESSAGES_FILE`                 | Pfad zur JSON-Datei mit Nachrichtentexten                                    | `./messages.json` |
+| `STARTUP_REAPPLY_DELAY_SECONDS` | Verzögerung, bevor gespeicherte Passwörter nach dem Start neu gesetzt werden | `5`               |
+| `RECONNECT_DELAY_SECONDS`       | Wartezeit nach einem Fehler, bevor ein Reconnect versucht wird               | `5`               |
 
 Die Datei `messages.json` kann nach eigenen Wünschen angepasst werden (Texte, Sprache, zusätzliche Hinweise). Platzhalter wie `{client_name}`, `{bot_name}` oder `{company_name}` werden automatisch ersetzt.
 
@@ -199,18 +200,18 @@ Veröffentlicht unter der MIT-Lizenz (siehe `LICENSE`).
    ```
 
 ### Environment variables
+| Variable                        | Beschreibung                                                                 | Standard          |
+|---------------------------------|------------------------------------------------------------------------------|-------------------|
+| `OTTD_HOST`                     | Hostname or IP address of the OpenTTD server                                 | `127.0.0.1`       |
+| `OTTD_ADMIN_PORT`               | Admin port of the server                                                     | `3977`            |
+| `OTTD_ADMIN_PASSWORD`           | Admin password of the server (required)                                      | –                 |
+| `BOT_NAME`                      | Display name of the bot                                                      | `ServerBot`       |
+| `COMMAND_PREFIX`                | Prefix used for chat commands                                                | `!`               |
+| `STATE_FILE`                    | Location where persistent passwords are stored                               | `./state.json`    |
+| `MESSAGES_FILE`                 | Path to the JSON file with message templates                                 | `./messages.json` |
+| `STARTUP_REAPPLY_DELAY_SECONDS` | Delay before reapplied passwords are sent after startup                      | `5`               |
+| `RECONNECT_DELAY_SECONDS`       | Wait time before reconnect attempts after an error                           | `5`               |
 
-| Variable | Description | Default |
-| --- | --- | --- |
-| `OTTD_HOST` | Hostname or IP address of the OpenTTD server | `127.0.0.1` |
-| `OTTD_ADMIN_PORT` | Admin port of the server | `3977` |
-| `OTTD_ADMIN_PASSWORD` | Admin password of the server (required) | – |
-| `BOT_NAME` | Display name of the bot | `ServerBot` |
-| `COMMAND_PREFIX` | Prefix used for chat commands | `!` |
-| `STATE_FILE` | Location where persistent passwords are stored | `./state.json` |
-| `MESSAGES_FILE` | Path to the JSON file with message templates | `./messages.json` |
-| `STARTUP_REAPPLY_DELAY_SECONDS` | Delay before reapplied passwords are sent after startup | `5` |
-| `RECONNECT_DELAY_SECONDS` | Wait time before reconnect attempts after an error | `5` |
 
 You can adapt `messages.json` to your needs. Placeholders such as `{client_name}`, `{bot_name}` or `{company_name}` are
 replaced automatically.
