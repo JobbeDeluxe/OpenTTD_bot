@@ -84,18 +84,18 @@ def test_join_sends_welcome_help_and_rules(bot):
     core.on_welcome(SimpleNamespace(server_name="TestServer"))
     core.on_client_info(SimpleNamespace(id=1, name="Alice", company_id=SPECTATOR_COMPANY_ID))
     assert messenger.private_messages[:12] == [
-        (1, "[DE] Willkommen Alice!"),
         (1, "[EN] Welcome Alice!"),
-        (1, "[DE] Dieser Server wird von ServerBot betreut."),
         (1, "[EN] This server is maintained by ServerBot."),
-        (1, "[DE] Verfügbare Befehle: !help, !rules, !pw <passwort>, !reset, !confirm."),
+        (1, "[DE] Willkommen Alice!"),
+        (1, "[DE] Dieser Server wird von ServerBot betreut."),
         (1, "[EN] Available commands: !help, !rules, !pw <password>, !reset, !confirm."),
-        (1, "[DE] Öffne die Spielerauswahl (Spieler-Button oder Strg+P), wähle ServerBot und nutze die Flüstern-Funktion, um !pw <passwort> privat zu senden."),
         (1, "[EN] Open the player selection (Players button or Ctrl+P), select ServerBot and use the whisper function to send !pw <password> privately."),
-        (1, "[DE] 1. Respektiere andere Spieler."),
+        (1, "[DE] Verfügbare Befehle: !help, !rules, !pw <passwort>, !reset, !confirm."),
+        (1, "[DE] Öffne die Spielerauswahl (Spieler-Button oder Strg+P), wähle ServerBot und nutze die Flüstern-Funktion, um !pw <passwort> privat zu senden."),
         (1, "[EN] 1. Respect other players."),
-        (1, "[DE] 2. Blockiere keine Strecken."),
         (1, "[EN] 2. Do not block tracks."),
+        (1, "[DE] 1. Respektiere andere Spieler."),
+        (1, "[DE] 2. Blockiere keine Strecken."),
     ]
 
 
@@ -105,10 +105,10 @@ def test_help_command_sends_help(bot):
     messenger.reset_messages()
     core.on_chat(make_chat(1, "!help"))
     assert messenger.private_messages == [
-        (1, "[DE] Verfügbare Befehle: !help, !rules, !pw <passwort>, !reset, !confirm."),
         (1, "[EN] Available commands: !help, !rules, !pw <password>, !reset, !confirm."),
-        (1, "[DE] Öffne die Spielerauswahl (Spieler-Button oder Strg+P), wähle ServerBot und nutze die Flüstern-Funktion, um !pw <passwort> privat zu senden."),
         (1, "[EN] Open the player selection (Players button or Ctrl+P), select ServerBot and use the whisper function to send !pw <password> privately."),
+        (1, "[DE] Verfügbare Befehle: !help, !rules, !pw <passwort>, !reset, !confirm."),
+        (1, "[DE] Öffne die Spielerauswahl (Spieler-Button oder Strg+P), wähle ServerBot und nutze die Flüstern-Funktion, um !pw <passwort> privat zu senden."),
     ]
 
 
@@ -119,8 +119,8 @@ def test_password_requires_private(bot):
     messenger.reset_messages()
     core.on_chat(make_chat(5, "!pw geheim", ChatDestTypes.BROADCAST))
     assert messenger.private_messages == [
-        (5, "[DE] Bitte nutze die Spielerauswahl, wähle ServerBot und sende dort !pw <passwort>, nicht im öffentlichen Chat."),
         (5, "[EN] Please use the player selection, pick ServerBot and send !pw <password> there instead of public chat."),
+        (5, "[DE] Bitte nutze die Spielerauswahl, wähle ServerBot und sende dort !pw <passwort>, nicht im öffentlichen Chat."),
     ]
     assert state_store.get_company_password(3) is None
     assert messenger.commands == []
@@ -135,8 +135,8 @@ def test_password_private_sets_and_persists(bot):
     assert state_store.get_company_password(2) == "geheim"
     assert ("set_pw", 2, "geheim") in messenger.commands
     assert messenger.private_messages[-2:] == [
-        (7, "[DE] Passwort für Firma Firma 2 wurde gespeichert."),
         (7, "[EN] Password for company Firma 2 has been saved."),
+        (7, "[DE] Passwort für Firma Firma 2 wurde gespeichert."),
     ]
 
 
@@ -150,8 +150,8 @@ def test_password_clear(bot):
     assert state_store.get_company_password(4) is None
     assert ("clear_pw", 4, None) in messenger.commands
     assert messenger.private_messages[-2:] == [
-        (8, "[DE] Passwort für Firma Firma 4 wurde entfernt."),
         (8, "[EN] Password for company Firma 4 has been removed."),
+        (8, "[DE] Passwort für Firma Firma 4 wurde entfernt."),
     ]
 
 
@@ -162,17 +162,17 @@ def test_reset_and_confirm(bot):
     messenger.reset_messages()
     core.on_chat(make_chat(9, "!reset"))
     assert messenger.private_messages[:4] == [
-        (9, "[DE] Du möchtest Firma Firma 6 zurücksetzen."),
         (9, "[EN] You want to reset company Firma 6."),
-        (9, "[DE] Verlasse zuerst die Firma (z. B. Zuschauer) und sende dann !confirm."),
         (9, "[EN] Leave the company first (e.g. become a spectator) and then send !confirm."),
+        (9, "[DE] Du möchtest Firma Firma 6 zurücksetzen."),
+        (9, "[DE] Verlasse zuerst die Firma (z. B. Zuschauer) und sende dann !confirm."),
     ]
     core.on_client_update(SimpleNamespace(id=9, name="Eve", company_id=SPECTATOR_COMPANY_ID))
     core.on_chat(make_chat(9, "!confirm"))
     assert ("reset", 6, None) in messenger.commands
     assert messenger.private_messages[-2:] == [
-        (9, "[DE] Firma Firma 6 wurde zurückgesetzt."),
         (9, "[EN] Company Firma 6 has been reset."),
+        (9, "[DE] Firma Firma 6 wurde zurückgesetzt."),
     ]
 
 
@@ -184,8 +184,8 @@ def test_reset_confirm_requires_leaving_company(bot):
     core.on_chat(make_chat(11, "!reset"))
     core.on_chat(make_chat(11, "!confirm"))
     assert messenger.private_messages[-2:] == [
-        (11, "[DE] Du befindest dich noch in Firma Firma 10. Verlasse sie zuerst und sende dann !confirm."),
         (11, "[EN] You are still in company Firma 10. Leave it first and then send !confirm."),
+        (11, "[DE] Du befindest dich noch in Firma Firma 10. Verlasse sie zuerst und sende dann !confirm."),
     ]
     assert not any(cmd for cmd in messenger.commands if cmd[0] == "reset")
 
@@ -202,11 +202,11 @@ def test_reset_confirm_cancelled_in_other_company(bot):
     assert messenger.private_messages[-2:] == [
         (
             12,
-            "[DE] Deine Reset-Anfrage bezog sich auf Firma Firma 20. Bitte sende !reset erneut in der gewünschten Firma.",
+            "[EN] Your reset request was for company Firma 20. Please use !reset again in the company you want to reset.",
         ),
         (
             12,
-            "[EN] Your reset request was for company Firma 20. Please use !reset again in the company you want to reset.",
+            "[DE] Deine Reset-Anfrage bezog sich auf Firma Firma 20. Bitte sende !reset erneut in der gewünschten Firma.",
         ),
     ]
     assert not any(cmd for cmd in messenger.commands if cmd[0] == "reset")
@@ -220,8 +220,8 @@ def test_reapply_password_on_company_info(bot):
     core.on_company_info(SimpleNamespace(id=12, name="Firma 12", manager_name="", passworded=False))
     assert ("set_pw", 12, "schutz") in messenger.commands
     assert messenger.private_messages[-2:] == [
-        (13, "[DE] Das gespeicherte Passwort für Firma Firma 12 wurde erneut gesetzt."),
         (13, "[EN] The stored password for company Firma 12 has been applied again."),
+        (13, "[DE] Das gespeicherte Passwort für Firma Firma 12 wurde erneut gesetzt."),
     ]
 
 

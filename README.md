@@ -50,7 +50,7 @@ Ein Python-Bot, der über den Admin-Port eines OpenTTD-Servers läuft und dabei 
 | `STARTUP_REAPPLY_DELAY_SECONDS` | Verzögerung, bevor gespeicherte Passwörter nach dem Start neu gesetzt werden | `5`               |
 | `RECONNECT_DELAY_SECONDS`       | Wartezeit nach einem Fehler, bevor ein Reconnect versucht wird               | `5`               |
 
-Die Datei `messages.json` kann nach eigenen Wünschen angepasst werden (Texte, Sprache, zusätzliche Hinweise). Platzhalter wie `{client_name}`, `{bot_name}` oder `{company_name}` werden automatisch ersetzt.
+Die Datei `messages.json` kann nach eigenen Wünschen angepasst werden (Texte, Sprache, zusätzliche Hinweise). Platzhalter wie `{client_name}`, `{bot_name}` oder `{company_name}` werden automatisch ersetzt. Die Nachrichten werden unverändert in den Chat weitergegeben; besondere Formatierungen wie Farb-Codes müssen daher direkt im Text hinterlegt werden und hängen von den Möglichkeiten des OpenTTD-Chats ab.
 
 ## OpenTTD-Serverkonfiguration
 
@@ -218,7 +218,8 @@ Veröffentlicht unter der MIT-Lizenz (siehe `LICENSE`).
 
 
 You can adapt `messages.json` to your needs. Placeholders such as `{client_name}`, `{bot_name}` or `{company_name}` are
-replaced automatically.
+replaced automatically. Messages are forwarded to the server unchanged; if you want to experiment with colour control codes you
+need to embed them directly in the text and rely on what the OpenTTD chat supports.
 
 ### OpenTTD server configuration
 
