@@ -90,8 +90,8 @@ def test_join_sends_welcome_help_and_rules(bot):
         (1, "[EN] This server is maintained by ServerBot."),
         (1, "[DE] Verfügbare Befehle: !help, !rules, !pw <passwort>, !reset, !confirm."),
         (1, "[EN] Available commands: !help, !rules, !pw <password>, !reset, !confirm."),
-        (1, "[DE] Nutze /whisper ServerBot !pw <passwort>, damit dein Passwort privat bleibt."),
-        (1, "[EN] Use /whisper ServerBot !pw <password> to keep your password private."),
+        (1, "[DE] Öffne die Spielerauswahl (Spieler-Button oder Strg+P), wähle ServerBot und nutze die Flüstern-Funktion, um !pw <passwort> privat zu senden."),
+        (1, "[EN] Open the player selection (Players button or Ctrl+P), select ServerBot and use the whisper function to send !pw <password> privately."),
         (1, "[DE] 1. Respektiere andere Spieler."),
         (1, "[EN] 1. Respect other players."),
         (1, "[DE] 2. Blockiere keine Strecken."),
@@ -107,8 +107,8 @@ def test_help_command_sends_help(bot):
     assert messenger.private_messages == [
         (1, "[DE] Verfügbare Befehle: !help, !rules, !pw <passwort>, !reset, !confirm."),
         (1, "[EN] Available commands: !help, !rules, !pw <password>, !reset, !confirm."),
-        (1, "[DE] Nutze /whisper ServerBot !pw <passwort>, damit dein Passwort privat bleibt."),
-        (1, "[EN] Use /whisper ServerBot !pw <password> to keep your password private."),
+        (1, "[DE] Öffne die Spielerauswahl (Spieler-Button oder Strg+P), wähle ServerBot und nutze die Flüstern-Funktion, um !pw <passwort> privat zu senden."),
+        (1, "[EN] Open the player selection (Players button or Ctrl+P), select ServerBot and use the whisper function to send !pw <password> privately."),
     ]
 
 
@@ -119,8 +119,8 @@ def test_password_requires_private(bot):
     messenger.reset_messages()
     core.on_chat(make_chat(5, "!pw geheim", ChatDestTypes.BROADCAST))
     assert messenger.private_messages == [
-        (5, "[DE] Bitte sende Firmenpasswörter nur per /whisper ServerBot !pw <passwort>, nicht im öffentlichen Chat."),
-        (5, "[EN] Please submit company passwords only via /whisper ServerBot !pw <password>, never in public chat."),
+        (5, "[DE] Bitte nutze die Spielerauswahl, wähle ServerBot und sende dort !pw <passwort>, nicht im öffentlichen Chat."),
+        (5, "[EN] Please use the player selection, pick ServerBot and send !pw <password> there instead of public chat."),
     ]
     assert state_store.get_company_password(3) is None
     assert messenger.commands == []

@@ -5,7 +5,7 @@ Ein Python-Bot, der über den Admin-Port eines OpenTTD-Servers läuft und dabei 
 ## Features
 
 - Reagiert auf Befehle `!help`, `!rules`, `!pw`, `!reset` und `!confirm` sowohl im öffentlichen Chat als auch per Flüstern.
-- Erzwingt, dass Passwörter ausschließlich per `/whisper <BotName> !pw <passwort>` privat übermittelt werden.
+- Erzwingt, dass Passwörter ausschließlich per privater Nachricht über die Spielerauswahl übermittelt werden (`!pw <passwort>` an den Bot flüstern).
 - Speichert Firmenpasswörter persistent und setzt sie nach einem Serverneustart automatisch wieder.
 - Schickt neuen Spielern automatisch eine Begrüßung sowie Hilfe- und Regelhinweise.
 - Informiert neue Firmeninhaber direkt darüber, wie ein Passwort gesetzt wird.
@@ -173,7 +173,7 @@ Veröffentlicht unter der MIT-Lizenz (siehe `LICENSE`).
 ### Features
 
 - Responds to `!help`, `!rules`, `!pw`, `!reset` and `!confirm` in public chat and via whispers.
-- Enforces password submission via private message (`/whisper <BotName> !pw <password>`).
+- Enforces password submission via private whisper using the player list (`!pw <password>` sent directly to the bot).
 - Persists company passwords and reapplies them after the server restarts.
 - Welcomes new players automatically and shares help/rules messages.
 - Informs new company owners how to set a password.
