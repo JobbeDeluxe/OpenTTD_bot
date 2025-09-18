@@ -15,35 +15,82 @@ LOGGER = logging.getLogger(__name__)
 DEFAULT_MESSAGES: dict[str, Any] = {
     "welcome": [
         "Willkommen {client_name}!",
+        "Welcome {client_name}!",
         "Dieser Server wird von {bot_name} betreut.",
+        "This server is maintained by {bot_name}.",
     ],
     "help": [
         "Verfügbare Befehle: !help, !rules, !pw <passwort>, !reset, !confirm.",
-        "Sende Befehle an den Server mit /server <text>.",
+        "Available commands: !help, !rules, !pw <password>, !reset, !confirm.",
+        "Flüstere dem Bot mit /whisper {bot_name} !pw <passwort>, damit niemand mitliest.",
+        "Whisper the bot using /whisper {bot_name} !pw <password> so nobody can read along.",
     ],
     "rules": [
         "1. Respektiere andere Spieler.",
+        "1. Respect other players.",
         "2. Blockiere keine Strecken.",
+        "2. Do not block tracks.",
     ],
     "password_instructions": [
-        "Sichere deine Firma mit /server !pw <passwort>.",
+        "Sichere deine Firma mit /whisper {bot_name} !pw <passwort>.",
+        "Protect your company by whispering /whisper {bot_name} !pw <password>.",
         "Das Passwort wird automatisch nach Serverneustarts wieder gesetzt.",
+        "The password will be restored automatically after server restarts.",
     ],
-    "password_whisper_only": "Bitte sende !pw per /server, damit dein Passwort geheim bleibt.",
-    "password_missing_argument": "Bitte gib ein Passwort an: !pw <passwort> oder !pw clear.",
-    "password_invalid": "Ungültiges Passwort.",
-    "password_set_success": "Passwort für Firma {company_name} wurde gespeichert.",
-    "password_clear_success": "Passwort für Firma {company_name} wurde entfernt.",
-    "password_not_in_company": "Du musst einer Firma angehören um ein Passwort zu setzen.",
-    "reset_not_in_company": "Du befindest dich aktuell in keiner Firma.",
+    "password_whisper_only": [
+        "Bitte flüstere {bot_name} mit /whisper {bot_name} !pw <passwort>, damit dein Passwort geheim bleibt.",
+        "Please whisper {bot_name} using /whisper {bot_name} !pw <password> to keep it secret.",
+    ],
+    "password_missing_argument": [
+        "Bitte gib ein Passwort an: !pw <passwort> oder !pw clear.",
+        "Please provide a password: !pw <password> or !pw clear.",
+    ],
+    "password_invalid": [
+        "Ungültiges Passwort.",
+        "Invalid password.",
+    ],
+    "password_set_success": [
+        "Passwort für Firma {company_name} wurde gespeichert.",
+        "Password for company {company_name} has been saved.",
+    ],
+    "password_clear_success": [
+        "Passwort für Firma {company_name} wurde entfernt.",
+        "Password for company {company_name} has been removed.",
+    ],
+    "password_not_in_company": [
+        "Du musst einer Firma angehören, um ein Passwort zu setzen.",
+        "You need to be part of a company to set a password.",
+    ],
+    "reset_not_in_company": [
+        "Du befindest dich aktuell in keiner Firma.",
+        "You are currently not in a company.",
+    ],
     "reset_prompt": [
         "Du möchtest Firma {company_name} zurücksetzen.",
-        "Sende !confirm um dies zu bestätigen.",
+        "You want to reset company {company_name}.",
+        "Verlasse zuerst die Firma (z. B. Zuschauer) und sende dann !confirm.",
+        "Leave the company first (e.g. become a spectator) and then send !confirm.",
     ],
-    "reset_confirmed": "Firma {company_name} wurde zurückgesetzt.",
-    "reset_no_pending": "Es liegt keine offene Zurücksetzung vor.",
-    "reset_wrong_company": "Du befindest dich nicht mehr in Firma {company_name}. Reset abgebrochen.",
-    "company_password_reapplied": "Das gespeicherte Passwort für Firma {company_name} wurde erneut gesetzt.",
+    "reset_confirmed": [
+        "Firma {company_name} wurde zurückgesetzt.",
+        "Company {company_name} has been reset.",
+    ],
+    "reset_no_pending": [
+        "Es liegt keine offene Zurücksetzung vor.",
+        "There is no pending reset.",
+    ],
+    "reset_wrong_company": [
+        "Deine Reset-Anfrage bezog sich auf Firma {company_name}. Bitte sende !reset erneut in der gewünschten Firma.",
+        "Your reset request was for company {company_name}. Please use !reset again in the company you want to reset.",
+    ],
+    "reset_still_in_company": [
+        "Du befindest dich noch in Firma {company_name}. Verlasse sie zuerst und sende dann !confirm.",
+        "You are still in company {company_name}. Leave it first and then send !confirm.",
+    ],
+    "company_password_reapplied": [
+        "Das gespeicherte Passwort für Firma {company_name} wurde erneut gesetzt.",
+        "The stored password for company {company_name} has been applied again.",
+    ],
 }
 
 

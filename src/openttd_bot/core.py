@@ -227,7 +227,9 @@ class BotCore:
 
     def _handle_password_command(self, client: ClientState, argument: str, is_private: bool) -> None:
         if not is_private:
-            message = self.messages.get_message("password_whisper_only")
+            message = self.messages.get_message(
+                "password_whisper_only", bot_name=self.config.bot_name
+            )
             if message:
                 self.messenger.send_private(client.client_id, message)
             return
@@ -290,9 +292,20 @@ class BotCore:
                 self.messenger.send_private(client.client_id, message)
             return
 
-        if client.company_id != pending_company:
-            company_name = self._company_display_name(pending_company)
-            message = self.messages.get_message("reset_wrong_company", company_name=company_name)
+        company_name = self._company_display_name(pending_company)
+
+        if client.company_id == pending_company:
+            message = self.messages.get_message(
+                "reset_still_in_company", company_name=company_name
+            )
+            if message:
+                self.messenger.send_private(client.client_id, message)
+            return
+
+        if client.company_id not in {None, pending_company}:
+            message = self.messages.get_message(
+                "reset_wrong_company", company_name=company_name
+            )
             if message:
                 self.messenger.send_private(client.client_id, message)
             self.pending_resets.pop(client.client_id, None)
@@ -300,7 +313,6 @@ class BotCore:
 
         self.pending_resets.pop(client.client_id, None)
         self.messenger.reset_company(pending_company)
-        company_name = self._company_display_name(pending_company)
         message = self.messages.get_message("reset_confirmed", company_name=company_name)
         if message:
             self.messenger.send_private(client.client_id, message)
