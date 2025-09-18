@@ -56,14 +56,18 @@ Die Datei `messages.json` kann nach eigenen Wünschen angepasst werden (Texte, S
 
 Damit der Bot sich verbinden kann, muss in der OpenTTD-Konfigurationsdatei `openttd.cfg` der Admin-Zugang korrekt
 eingestellt sein. Die Datei befindet sich je nach Installation beispielsweise unter `/config/openttd.cfg` (Docker-Volume)
-oder im Benutzerverzeichnis (`~/.openttd/openttd.cfg`). Relevante Optionen innerhalb des Blocks `[admin]`:
+oder im Benutzerverzeichnis (`~/.openttd/openttd.cfg`). Relevante Optionen innerhalb des Blocks `[network]`:
 
 ```ini
-[admin]
-admin_port = 3977
-admin_password = topsecret
-admin_bind = 0.0.0.0
-admin_chat = true
+[network]
+server_name = openttd2
+server_advertise = true
+server_port = 3980
+rcon_password = yourpassword
+admin_password = yourpassword
+server_admin_port = 3977
+server_admin_chat = true
+server_bind_addresses = 0.0.0.0 
 ```
 
 - `admin_port` muss mit der Umgebungsvariable `OTTD_ADMIN_PORT` übereinstimmen.
@@ -220,14 +224,18 @@ replaced automatically.
 
 The admin interface must be configured in `openttd.cfg` so the bot can connect. Depending on your setup the file can be found
 inside the Docker volume (for example `/config/openttd.cfg`) or in the user directory (`~/.openttd/openttd.cfg`). Relevant
-options in the `[admin]` block:
+options in the `[network]` block:
 
 ```ini
-[admin]
-admin_port = 3977
-admin_password = topsecret
-admin_bind = 0.0.0.0
-admin_chat = true
+[network]
+server_name = openttd2
+server_advertise = true
+server_port = 3980
+rcon_password = yourpassword
+admin_password = yourpassword
+server_admin_port = 3977
+server_admin_chat = true
+server_bind_addresses = 0.0.0.0 
 ```
 
 - `admin_port` must match the `OTTD_ADMIN_PORT` environment variable.
