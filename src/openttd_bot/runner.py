@@ -195,19 +195,22 @@ class BotRunner:
             watchdog.start()
 
             try:
-                admin.run()
-            except ConnectionAbortedError:
-                if not protocol_event.is_set():
-                    details = ""
-                    if hasattr(admin, "debug_state"):
-                        try:
-                            details = f" ({admin.debug_state()})"
-                        except Exception:  # pragma: no cover - defensive logging
-                            LOGGER.debug("Failed to collect admin debug state", exc_info=True)
-                    LOGGER.error(
-                        "Admin connection closed before receiving protocol packet%s", details
-                    )
-                raise
+                self._authenticate(admin)
+
+                try:
+                    admin.run()
+                except ConnectionAbortedError:
+                    if not protocol_event.is_set():
+                        details = ""
+                        if hasattr(admin, "debug_state"):
+                            try:
+                                details = f" ({admin.debug_state()})"
+                            except Exception:  # pragma: no cover - defensive logging
+                                LOGGER.debug("Failed to collect admin debug state", exc_info=True)
+                        LOGGER.error(
+                            "Admin connection closed before receiving protocol packet%s", details
+                        )
+                    raise
             finally:
                 protocol_event.set()
 
@@ -224,7 +227,6 @@ class BotRunner:
                     admin.mark_protocol_received()
                 except Exception:  # pragma: no cover - defensive logging
                     LOGGER.debug("Failed to mark protocol as received", exc_info=True)
-            admin.login(self.config.bot_name, self.config.admin_password)
 
         return handler
 
@@ -252,6 +254,18 @@ class BotRunner:
 
         thread = threading.Thread(target=worker, name="password-reapply", daemon=True)
         thread.start()
+
+    # ------------------------------------------------------------------
+
+    def _authenticate(self, admin: Admin) -> None:
+        """Send the initial admin login packet to authenticate with the server."""
+
+        try:
+            LOGGER.info("Authenticating as %s", self.config.bot_name)
+            admin.login(self.config.bot_name, self.config.admin_password)
+        except Exception:
+            LOGGER.exception("Failed to send admin login packet")
+            raise
 
     # ------------------------------------------------------------------
 
