@@ -32,6 +32,8 @@ from .state import StateStore
 
 LOGGER = logging.getLogger(__name__)
 
+PROTOCOL_WATCHDOG_INTERVAL_SECONDS = 10
+
 
 class BotRunner:
     """Glue code between the Admin client and the bot core."""
@@ -61,9 +63,10 @@ class BotRunner:
         with Admin(self.config.host, self.config.admin_port) as admin:
             messenger = AdminMessenger(admin)
             bot = BotCore(self.config, self.messages, self.state_store, messenger)
+            protocol_event = threading.Event()
 
             # Register packet handlers
-            admin.add_handler(ProtocolPacket)(self._handle_protocol(bot))
+            admin.add_handler(ProtocolPacket)(self._handle_protocol(bot, protocol_event))
             admin.add_handler(WelcomePacket)(self._handle_welcome(bot))
             admin.add_handler(ClientJoinPacket)(lambda _admin, packet: bot.on_client_join(packet))
             admin.add_handler(ClientQuitPacket)(lambda _admin, packet: bot.on_client_quit(packet))
@@ -77,13 +80,27 @@ class BotRunner:
             admin.add_handler(ShutdownPacket)(lambda _admin, packet: LOGGER.info("Server shutting down"))
 
             LOGGER.info("Waiting for server protocol packet")
-            admin.run()
+            watchdog = threading.Thread(
+                target=self._protocol_watchdog,
+                name="protocol-watchdog",
+                args=(protocol_event,),
+                daemon=True,
+            )
+            watchdog.start()
+
+            try:
+                admin.run()
+            finally:
+                protocol_event.set()
 
     # ------------------------------------------------------------------
 
-    def _handle_protocol(self, bot: BotCore) -> Callable[[Admin, ProtocolPacket], None]:
+    def _handle_protocol(
+        self, bot: BotCore, protocol_event: threading.Event
+    ) -> Callable[[Admin, ProtocolPacket], None]:
         def handler(admin: Admin, packet: ProtocolPacket) -> None:
             LOGGER.info("Received protocol packet version %s", packet.version)
+            protocol_event.set()
             admin.login(self.config.bot_name, self.config.admin_password)
 
         return handler
@@ -112,3 +129,27 @@ class BotRunner:
 
         thread = threading.Thread(target=worker, name="password-reapply", daemon=True)
         thread.start()
+
+    # ------------------------------------------------------------------
+
+    def _protocol_watchdog(self, protocol_event: threading.Event) -> None:
+        wait_interval = max(1, PROTOCOL_WATCHDOG_INTERVAL_SECONDS)
+        waited = wait_interval
+
+        while not protocol_event.wait(wait_interval):
+            if waited == wait_interval:
+                LOGGER.warning(
+                    "Still waiting for initial protocol packet from %s:%s after %s seconds. "
+                    "Verify that the OpenTTD server is reachable and that the admin port is enabled.",
+                    self.config.host,
+                    self.config.admin_port,
+                    waited,
+                )
+            else:
+                LOGGER.debug(
+                    "Still waiting for initial protocol packet from %s:%s after %s seconds",
+                    self.config.host,
+                    self.config.admin_port,
+                    waited,
+                )
+            waited += wait_interval
