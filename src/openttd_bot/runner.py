@@ -173,7 +173,7 @@ class BotRunner:
 
             # Register packet handlers
             admin.add_handler(ProtocolPacket)(self._handle_protocol(bot, protocol_event))
-            admin.add_handler(WelcomePacket)(self._handle_welcome(bot))
+            admin.add_handler(WelcomePacket)(self._handle_welcome(bot, messenger))
             admin.add_handler(ClientJoinPacket)(lambda _admin, packet: bot.on_client_join(packet))
             admin.add_handler(ClientQuitPacket)(lambda _admin, packet: bot.on_client_quit(packet))
             admin.add_handler(ClientInfoPacket)(lambda _admin, packet: bot.on_client_info(packet))
@@ -230,10 +230,14 @@ class BotRunner:
 
         return handler
 
-    def _handle_welcome(self, bot: BotCore) -> Callable[[Admin, WelcomePacket], None]:
+    def _handle_welcome(self, bot: BotCore, messenger: AdminMessenger) -> Callable[[Admin, WelcomePacket], None]:
         def handler(admin: Admin, packet: WelcomePacket) -> None:
             LOGGER.info("Logged in as %s", self.config.bot_name)
             bot.on_welcome(packet)
+            try:
+                messenger.set_admin_name(self.config.bot_name)
+            except Exception:  # pragma: no cover - defensive logging
+                LOGGER.exception("Failed to set admin chat name")
             admin.subscribe(AdminUpdateType.CLIENT_INFO, AdminUpdateFrequency.AUTOMATIC)
             admin.subscribe(AdminUpdateType.COMPANY_INFO, AdminUpdateFrequency.AUTOMATIC)
             admin.subscribe(AdminUpdateType.CHAT, AdminUpdateFrequency.AUTOMATIC)
