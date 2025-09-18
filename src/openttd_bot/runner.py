@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import logging
+import shutil
+import subprocess
 import threading
 import time
 from typing import Callable
@@ -145,6 +147,7 @@ class BotRunner:
                     self.config.admin_port,
                     waited,
                 )
+                self._log_connectivity_probe()
             else:
                 LOGGER.debug(
                     "Still waiting for initial protocol packet from %s:%s after %s seconds",
@@ -153,3 +156,34 @@ class BotRunner:
                     waited,
                 )
             waited += wait_interval
+
+    def _log_connectivity_probe(self) -> None:
+        """Run a short netcat probe to help diagnose connectivity issues."""
+
+        if shutil.which("nc") is None:
+            LOGGER.info("Skipping netcat connectivity probe because 'nc' was not found in PATH")
+            return
+
+        command = ["nc", "-vz", str(self.config.host), str(self.config.admin_port)]
+        LOGGER.info("Running netcat connectivity probe: %s", " ".join(command))
+
+        try:
+            result = subprocess.run(
+                command,
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+        except subprocess.TimeoutExpired:
+            LOGGER.warning("Netcat connectivity probe timed out after 5 seconds")
+            return
+        except OSError as exc:
+            LOGGER.warning("Failed to execute netcat connectivity probe: %s", exc)
+            return
+
+        if result.stdout:
+            LOGGER.info("netcat stdout:\n%s", result.stdout.strip())
+        if result.stderr:
+            LOGGER.info("netcat stderr:\n%s", result.stderr.strip())
+
+        LOGGER.info("netcat exited with return code %s", result.returncode)
