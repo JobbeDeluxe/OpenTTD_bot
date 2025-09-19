@@ -2,14 +2,19 @@
 
 from __future__ import annotations
 
+from collections import OrderedDict
 from dataclasses import dataclass
 import json
 import logging
 from pathlib import Path
+import re
 from typing import Any, Iterable, Mapping
 
 
 LOGGER = logging.getLogger(__name__)
+
+
+_SECTION_HEADER_RE = re.compile(r"^-+\[(?P<section>[^\]]+)\]-+$")
 
 
 DEFAULT_MESSAGES: dict[str, Any] = {
@@ -164,3 +169,61 @@ class MessageCatalog:
         """Return whether a message is configured for *key*."""
 
         return key in self.data
+
+    def merge_sections(self, lines: Iterable[str], joiner: str = "\n") -> list[str]:
+        """Merge lines that are grouped by language markers into larger blocks."""
+
+        sections: "OrderedDict[str, list[str]]" = OrderedDict()
+        headers: dict[str, str | None] = {}
+        order: list[str] = []
+        current_section: str | None = None
+
+        def ensure_section(key: str) -> list[str]:
+            if key not in sections:
+                sections[key] = []
+                headers.setdefault(key, None)
+                order.append(key)
+            return sections[key]
+
+        for line in lines:
+            stripped = line.strip()
+            header = _SECTION_HEADER_RE.match(stripped)
+            if header:
+                section = header.group("section")
+                block = ensure_section(section)
+                if headers[section] is None:
+                    headers[section] = line
+                elif block and block[-1].strip():
+                    block.append("")
+                current_section = section
+                continue
+
+            key = current_section if current_section is not None else ""
+            block = ensure_section(key)
+            block.append(line)
+
+        merged: list[str] = []
+        for key in order:
+            block = _trim_empty_edges(sections[key])
+            header = headers.get(key)
+            if header is None and not block:
+                continue
+            parts: list[str] = []
+            if header:
+                parts.append(header)
+            parts.extend(block)
+            merged.append(joiner.join(parts))
+
+        return merged
+
+
+def _trim_empty_edges(lines: list[str]) -> list[str]:
+    start = 0
+    end = len(lines)
+
+    while start < end and not lines[start].strip():
+        start += 1
+    while end > start and not lines[end - 1].strip():
+        end -= 1
+
+    return lines[start:end]
