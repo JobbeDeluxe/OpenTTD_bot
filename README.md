@@ -4,12 +4,23 @@ Ein Python-Bot, der über den Admin-Port eines OpenTTD-Servers läuft und dabei 
 
 ## Features
 
-- Reagiert auf Befehle `!help`, `!rules`, `!pw`, `!reset` und `!confirm` sowohl im öffentlichen Chat als auch per Flüstern.
+- Reagiert auf Befehle `!help`, `!rules`, `!pw`, `!reset`, `!confirm` und `!newgame` sowohl im öffentlichen Chat als auch per Flüstern.
 - Erzwingt, dass Passwörter ausschließlich per privater Nachricht über die Spielerauswahl übermittelt werden (`!pw <passwort>` an den Bot flüstern).
 - Speichert Firmenpasswörter persistent und setzt sie nach einem Serverneustart automatisch wieder.
 - Schickt neuen Spielern automatisch eine Begrüßung sowie Hilfe- und Regelhinweise.
 - Informiert neue Firmeninhaber direkt darüber, wie ein Passwort gesetzt wird.
 - Stellt sicher, dass `!reset` nur die Firma des aufrufenden Spielers betrifft und mit `!confirm` abgesichert wird.
+
+## Befehle
+
+| Befehl | Verwendung | Beschreibung |
+|--------|------------|--------------|
+| `!help` | `!help` | Schickt dir die Hilfetexte als private Nachricht. |
+| `!rules` | `!rules` | Sendet die Serverregeln als Flüstern. |
+| `!pw` | `!pw <passwort>` per Flüstern | Setzt das Firmenpasswort oder ersetzt es. Schlüsselwörter wie `clear`/`reset` löschen das Passwort. |
+| `!reset` | `!reset` | Fordert das Zurücksetzen deiner aktuellen Firma an und verlangt eine Bestätigung. |
+| `!confirm` | `!confirm` | Bestätigt einen ausstehenden Reset, nachdem du die Firma verlassen hast. |
+| `!newgame` | `!newgame <admin-passwort>` | Startet eine neue Partie, leert alle gespeicherten Passwörter und führt einen Neustart des Spiels durch. |
 
 ## Installation
 
@@ -173,12 +184,23 @@ Veröffentlicht unter der MIT-Lizenz (siehe `LICENSE`).
 
 ### Features
 
-- Responds to `!help`, `!rules`, `!pw`, `!reset` and `!confirm` in public chat and via whispers.
+- Responds to `!help`, `!rules`, `!pw`, `!reset`, `!confirm` and `!newgame` in public chat and via whispers.
 - Enforces password submission via private whisper using the player list (`!pw <password>` sent directly to the bot).
 - Persists company passwords and reapplies them after the server restarts.
 - Welcomes new players automatically and shares help/rules messages.
 - Informs new company owners how to set a password.
 - Protects `!reset` with a confirmation step and limits it to the caller's company.
+
+### Commands
+
+| Command | Usage | Description |
+|---------|-------|-------------|
+| `!help` | `!help` | Sends the help text to you via private message. |
+| `!rules` | `!rules` | Whispers the server rules. |
+| `!pw` | `!pw <password>` via whisper | Sets or updates the company password. Keywords such as `clear`/`reset` remove it. |
+| `!reset` | `!reset` | Requests a reset of your current company and starts the confirmation process. |
+| `!confirm` | `!confirm` | Confirms a pending reset once you have left the company. |
+| `!newgame` | `!newgame <admin password>` | Starts a fresh game, clears all stored passwords and triggers a restart. |
 
 ### Installation
 
