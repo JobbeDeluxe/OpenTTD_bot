@@ -18,9 +18,11 @@ def test_rcon_commands_use_one_based_company_ids() -> None:
     messenger.set_company_password(5, "secret")
     messenger.clear_company_password(5)
     messenger.reset_company(5)
+    messenger.restart_game()
 
     assert admin.rcon_commands == [
         'company_pw 6 "secret"',
         'company_pw 6 ""',
         'reset_company 6',
+        'restart',
     ]

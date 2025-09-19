@@ -187,6 +187,8 @@ class BotCore:
             self._handle_reset_command(client)
         elif command == "confirm":
             self._handle_confirm_command(client)
+        elif command == "newgame":
+            self._handle_newgame_command(client, argument)
         else:
             LOGGER.debug("Unknown command %s from client %s", command, client_id)
 
@@ -317,6 +319,27 @@ class BotCore:
         if lines:
             self.messenger.send_private_lines(client.client_id, lines)
 
+    def _handle_newgame_command(self, client: ClientState, argument: str) -> None:
+        if not argument:
+            lines = self.messages.get_lines("newgame_missing_password")
+            if lines:
+                self.messenger.send_private_lines(client.client_id, lines)
+            return
+
+        if argument != self.config.admin_password:
+            lines = self.messages.get_lines("newgame_invalid_password")
+            if lines:
+                self.messenger.send_private_lines(client.client_id, lines)
+            return
+
+        self._clear_all_company_passwords()
+        self.pending_resets.clear()
+        self.messenger.restart_game()
+
+        lines = self.messages.get_lines("newgame_started")
+        if lines:
+            self.messenger.send_private_lines(client.client_id, lines)
+
     # ------------------------------------------------------------------
     # Password helpers
     # ------------------------------------------------------------------
@@ -360,6 +383,24 @@ class BotCore:
         for client in self.clients.values():
             if client.company_id == company_id:
                 self.messenger.send_private_lines(client.client_id, lines)
+
+    def _clear_all_company_passwords(self) -> None:
+        stored_company_ids = [company_id for company_id, _ in self.state_store.iter_company_passwords()]
+        all_company_ids = set(stored_company_ids)
+        all_company_ids.update(self.companies.keys())
+
+        for company_id in sorted(all_company_ids):
+            LOGGER.info(
+                "Clearing password for company %s before starting new game",
+                self._display_company_id(company_id),
+            )
+            self.messenger.clear_company_password(company_id)
+            self._last_password_application.pop(company_id, None)
+            company = self.companies.get(company_id)
+            if company is not None:
+                company.passworded = False
+
+        self.state_store.clear_all_company_passwords()
 
     def reapply_stored_passwords(self) -> None:
         """Reapply all stored passwords via RCON."""

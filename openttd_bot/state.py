@@ -73,6 +73,15 @@ class StateStore:
                 del self._state.companies[str(company_id)]
                 self._write()
 
+    def clear_all_company_passwords(self) -> None:
+        """Remove all stored company passwords."""
+
+        with self._lock:
+            if not self._state.companies:
+                return
+            self._state.companies.clear()
+            self._write()
+
     def iter_company_passwords(self) -> Iterator[tuple[int, str]]:
         """Yield all stored company passwords."""
 
