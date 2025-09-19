@@ -42,6 +42,9 @@ class FakeMessenger:
     def reset_company(self, company_id: int) -> None:
         self.commands.append(("reset", company_id, None))
 
+    def restart_game(self) -> None:
+        self.commands.append(("restart", None, None))
+
     def reset_messages(self) -> None:
         self.private_messages.clear()
         self.company_messages.clear()
@@ -232,3 +235,44 @@ def test_reapply_all_passwords(bot):
     core.reapply_stored_passwords()
     assert ("set_pw", 20, "eins") in messenger.commands
     assert ("set_pw", 21, "zwei") in messenger.commands
+
+
+def test_newgame_requires_password(bot):
+    core, messenger, _ = bot
+    core.on_client_info(SimpleNamespace(id=30, name="Admin", company_id=SPECTATOR_COMPANY_ID))
+
+    messenger.reset_messages()
+    core.on_chat(make_chat(30, "!newgame", ChatDestTypes.CLIENT))
+    assert messenger.private_messages == [
+        (30, "[EN] Please provide the admin password: !newgame <password>."),
+        (30, "[DE] Bitte gib das Admin-Passwort an: !newgame <passwort>."),
+    ]
+    assert messenger.commands == []
+
+    messenger.reset_messages()
+    core.on_chat(make_chat(30, "!newgame falsch", ChatDestTypes.CLIENT))
+    assert messenger.private_messages == [
+        (30, "[EN] Invalid admin password."),
+        (30, "[DE] Ungültiges Admin-Passwort."),
+    ]
+    assert messenger.commands == []
+
+
+def test_newgame_clears_passwords_and_restarts(bot):
+    core, messenger, state_store = bot
+    core.on_company_info(SimpleNamespace(id=0, name="Firma 1", manager_name="", passworded=True))
+    core.on_company_info(SimpleNamespace(id=1, name="Firma 2", manager_name="", passworded=True))
+    state_store.set_company_password(0, "secret")
+    core.on_client_info(SimpleNamespace(id=31, name="Admin", company_id=SPECTATOR_COMPANY_ID))
+
+    messenger.reset_messages()
+    core.on_chat(make_chat(31, "!newgame admin", ChatDestTypes.CLIENT))
+
+    assert ("clear_pw", 0, None) in messenger.commands
+    assert ("clear_pw", 1, None) in messenger.commands
+    assert ("restart", None, None) in messenger.commands
+    assert list(state_store.iter_company_passwords()) == []
+    assert messenger.private_messages[-2:] == [
+        (31, "[EN] Clearing all company passwords and starting a new game."),
+        (31, "[DE] Alle Firmenpasswörter werden gelöscht und ein neues Spiel wird gestartet."),
+    ]

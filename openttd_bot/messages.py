@@ -91,6 +91,18 @@ DEFAULT_MESSAGES: dict[str, Any] = {
         "[EN] The stored password for company {company_name} has been applied again.",
         "[DE] Das gespeicherte Passwort für Firma {company_name} wurde erneut gesetzt.",
     ],
+    "newgame_missing_password": [
+        "[EN] Please provide the admin password: !newgame <password>.",
+        "[DE] Bitte gib das Admin-Passwort an: !newgame <passwort>.",
+    ],
+    "newgame_invalid_password": [
+        "[EN] Invalid admin password.",
+        "[DE] Ungültiges Admin-Passwort.",
+    ],
+    "newgame_started": [
+        "[EN] Clearing all company passwords and starting a new game.",
+        "[DE] Alle Firmenpasswörter werden gelöscht und ein neues Spiel wird gestartet.",
+    ],
 }
 
 

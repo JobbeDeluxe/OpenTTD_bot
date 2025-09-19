@@ -72,6 +72,12 @@ class AdminMessenger:
         LOGGER.info("Resetting company %s (RCON id %s)", company_id + 1, company_number)
         self._admin.send_rcon(f"reset_company {company_number}")
 
+    def restart_game(self) -> None:
+        """Start a fresh game on the server."""
+
+        LOGGER.info("Requesting new game via RCON")
+        self._admin.send_rcon("restart")
+
     @staticmethod
     def _format_company_password_command(company_id: int, password: str) -> str:
         escaped = password.replace("\\", "\\\\").replace('"', '\\"')
