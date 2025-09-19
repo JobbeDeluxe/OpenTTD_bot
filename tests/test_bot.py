@@ -86,20 +86,15 @@ def test_join_sends_welcome_help_and_rules(bot):
     core, messenger, _ = bot
     core.on_welcome(SimpleNamespace(server_name="TestServer"))
     core.on_client_info(SimpleNamespace(id=1, name="Alice", company_id=SPECTATOR_COMPANY_ID))
-    assert messenger.private_messages[:12] == [
-        (1, "[EN] Welcome Alice!"),
-        (1, "[EN] This server is maintained by ServerBot."),
-        (1, "[DE] Willkommen Alice!"),
-        (1, "[DE] Dieser Server wird von ServerBot betreut."),
-        (1, "[EN] Available commands: !help, !rules, !pw <password>, !reset, !confirm."),
-        (1, "[EN] Open the player selection (Players button or Ctrl+P), select ServerBot and use the whisper function to send !pw <password> privately."),
-        (1, "[DE] Verfügbare Befehle: !help, !rules, !pw <passwort>, !reset, !confirm."),
-        (1, "[DE] Öffne die Spielerauswahl (Spieler-Button oder Strg+P), wähle ServerBot und nutze die Flüstern-Funktion, um !pw <passwort> privat zu senden."),
-        (1, "[EN] 1. Respect other players."),
-        (1, "[EN] 2. Do not block tracks."),
-        (1, "[DE] 1. Respektiere andere Spieler."),
-        (1, "[DE] 2. Blockiere keine Strecken."),
-    ]
+    bot_name = core.config.bot_name
+    expected_lines = []
+    expected_lines.extend(
+        core.messages.get_lines("welcome", client_name="Alice", bot_name=bot_name)
+    )
+    expected_lines.extend(core.messages.get_lines("help", bot_name=bot_name))
+    expected_lines.extend(core.messages.get_lines("rules"))
+    expected = [(1, line) for line in expected_lines]
+    assert messenger.private_messages[: len(expected)] == expected
 
 
 def test_help_command_sends_help(bot):
@@ -107,12 +102,11 @@ def test_help_command_sends_help(bot):
     core.on_client_info(SimpleNamespace(id=1, name="Alice", company_id=SPECTATOR_COMPANY_ID))
     messenger.reset_messages()
     core.on_chat(make_chat(1, "!help"))
-    assert messenger.private_messages == [
-        (1, "[EN] Available commands: !help, !rules, !pw <password>, !reset, !confirm."),
-        (1, "[EN] Open the player selection (Players button or Ctrl+P), select ServerBot and use the whisper function to send !pw <password> privately."),
-        (1, "[DE] Verfügbare Befehle: !help, !rules, !pw <passwort>, !reset, !confirm."),
-        (1, "[DE] Öffne die Spielerauswahl (Spieler-Button oder Strg+P), wähle ServerBot und nutze die Flüstern-Funktion, um !pw <passwort> privat zu senden."),
+    bot_name = core.config.bot_name
+    expected = [
+        (1, line) for line in core.messages.get_lines("help", bot_name=bot_name)
     ]
+    assert messenger.private_messages == expected
 
 
 def test_password_requires_private(bot):
@@ -121,10 +115,14 @@ def test_password_requires_private(bot):
     core.on_client_info(SimpleNamespace(id=5, name="Bob", company_id=3))
     messenger.reset_messages()
     core.on_chat(make_chat(5, "!pw geheim", ChatDestTypes.BROADCAST))
-    assert messenger.private_messages == [
-        (5, "[EN] Please use the player selection, pick ServerBot and send !pw <password> there instead of public chat."),
-        (5, "[DE] Bitte nutze die Spielerauswahl, wähle ServerBot und sende dort !pw <passwort>, nicht im öffentlichen Chat."),
+    bot_name = core.config.bot_name
+    expected = [
+        (5, line)
+        for line in core.messages.get_lines(
+            "password_whisper_only", bot_name=bot_name
+        )
     ]
+    assert messenger.private_messages == expected
     assert state_store.get_company_password(3) is None
     assert messenger.commands == []
 
@@ -137,10 +135,13 @@ def test_password_private_sets_and_persists(bot):
     core.on_chat(make_chat(7, "!pw geheim", ChatDestTypes.CLIENT))
     assert state_store.get_company_password(2) == "geheim"
     assert ("set_pw", 2, "geheim") in messenger.commands
-    assert messenger.private_messages[-2:] == [
-        (7, "[EN] Password for company Firma 2 has been saved."),
-        (7, "[DE] Passwort für Firma Firma 2 wurde gespeichert."),
+    expected = [
+        (7, line)
+        for line in core.messages.get_lines(
+            "password_set_success", company_name="Firma 2"
+        )
     ]
+    assert messenger.private_messages[-len(expected) :] == expected
 
 
 def test_password_clear(bot):
@@ -152,10 +153,13 @@ def test_password_clear(bot):
     core.on_chat(make_chat(8, "!pw clear", ChatDestTypes.CLIENT))
     assert state_store.get_company_password(4) is None
     assert ("clear_pw", 4, None) in messenger.commands
-    assert messenger.private_messages[-2:] == [
-        (8, "[EN] Password for company Firma 4 has been removed."),
-        (8, "[DE] Passwort für Firma Firma 4 wurde entfernt."),
+    expected = [
+        (8, line)
+        for line in core.messages.get_lines(
+            "password_clear_success", company_name="Firma 4"
+        )
     ]
+    assert messenger.private_messages[-len(expected) :] == expected
 
 
 def test_reset_and_confirm(bot):
@@ -164,19 +168,23 @@ def test_reset_and_confirm(bot):
     core.on_client_info(SimpleNamespace(id=9, name="Eve", company_id=6))
     messenger.reset_messages()
     core.on_chat(make_chat(9, "!reset"))
-    assert messenger.private_messages[:4] == [
-        (9, "[EN] You want to reset company Firma 6."),
-        (9, "[EN] Leave the company first (e.g. become a spectator) and then send !confirm."),
-        (9, "[DE] Du möchtest Firma Firma 6 zurücksetzen."),
-        (9, "[DE] Verlasse zuerst die Firma (z. B. Zuschauer) und sende dann !confirm."),
+    expected_prompt = [
+        (9, line)
+        for line in core.messages.get_lines(
+            "reset_prompt", company_name="Firma 6"
+        )
     ]
+    assert messenger.private_messages[: len(expected_prompt)] == expected_prompt
     core.on_client_update(SimpleNamespace(id=9, name="Eve", company_id=SPECTATOR_COMPANY_ID))
     core.on_chat(make_chat(9, "!confirm"))
     assert ("reset", 6, None) in messenger.commands
-    assert messenger.private_messages[-2:] == [
-        (9, "[EN] Company Firma 6 has been reset."),
-        (9, "[DE] Firma Firma 6 wurde zurückgesetzt."),
+    expected_confirm = [
+        (9, line)
+        for line in core.messages.get_lines(
+            "reset_confirmed", company_name="Firma 6"
+        )
     ]
+    assert messenger.private_messages[-len(expected_confirm) :] == expected_confirm
 
 
 def test_reset_confirm_requires_leaving_company(bot):
@@ -186,10 +194,13 @@ def test_reset_confirm_requires_leaving_company(bot):
     messenger.reset_messages()
     core.on_chat(make_chat(11, "!reset"))
     core.on_chat(make_chat(11, "!confirm"))
-    assert messenger.private_messages[-2:] == [
-        (11, "[EN] You are still in company Firma 10. Leave it first and then send !confirm."),
-        (11, "[DE] Du befindest dich noch in Firma Firma 10. Verlasse sie zuerst und sende dann !confirm."),
+    expected = [
+        (11, line)
+        for line in core.messages.get_lines(
+            "reset_still_in_company", company_name="Firma 10"
+        )
     ]
+    assert messenger.private_messages[-len(expected) :] == expected
     assert not any(cmd for cmd in messenger.commands if cmd[0] == "reset")
 
 
@@ -202,16 +213,13 @@ def test_reset_confirm_cancelled_in_other_company(bot):
     core.on_chat(make_chat(12, "!reset"))
     core.on_client_update(SimpleNamespace(id=12, name="Gina", company_id=21))
     core.on_chat(make_chat(12, "!confirm"))
-    assert messenger.private_messages[-2:] == [
-        (
-            12,
-            "[EN] Your reset request was for company Firma 20. Please use !reset again in the company you want to reset.",
-        ),
-        (
-            12,
-            "[DE] Deine Reset-Anfrage bezog sich auf Firma Firma 20. Bitte sende !reset erneut in der gewünschten Firma.",
-        ),
+    expected = [
+        (12, line)
+        for line in core.messages.get_lines(
+            "reset_wrong_company", company_name="Firma 20"
+        )
     ]
+    assert messenger.private_messages[-len(expected) :] == expected
     assert not any(cmd for cmd in messenger.commands if cmd[0] == "reset")
 
 
@@ -222,10 +230,13 @@ def test_reapply_password_on_company_info(bot):
     messenger.reset_messages()
     core.on_company_info(SimpleNamespace(id=12, name="Firma 12", manager_name="", passworded=False))
     assert ("set_pw", 12, "schutz") in messenger.commands
-    assert messenger.private_messages[-2:] == [
-        (13, "[EN] The stored password for company Firma 12 has been applied again."),
-        (13, "[DE] Das gespeicherte Passwort für Firma Firma 12 wurde erneut gesetzt."),
+    expected = [
+        (13, line)
+        for line in core.messages.get_lines(
+            "company_password_reapplied", company_name="Firma 12"
+        )
     ]
+    assert messenger.private_messages[-len(expected) :] == expected
 
 
 def test_reapply_all_passwords(bot):
@@ -243,18 +254,20 @@ def test_newgame_requires_password(bot):
 
     messenger.reset_messages()
     core.on_chat(make_chat(30, "!newgame", ChatDestTypes.CLIENT))
-    assert messenger.private_messages == [
-        (30, "[EN] Please provide the admin password: !newgame <password>."),
-        (30, "[DE] Bitte gib das Admin-Passwort an: !newgame <passwort>."),
+    expected_missing = [
+        (30, line)
+        for line in core.messages.get_lines("newgame_missing_password")
     ]
+    assert messenger.private_messages == expected_missing
     assert messenger.commands == []
 
     messenger.reset_messages()
     core.on_chat(make_chat(30, "!newgame falsch", ChatDestTypes.CLIENT))
-    assert messenger.private_messages == [
-        (30, "[EN] Invalid admin password."),
-        (30, "[DE] Ungültiges Admin-Passwort."),
+    expected_invalid = [
+        (30, line)
+        for line in core.messages.get_lines("newgame_invalid_password")
     ]
+    assert messenger.private_messages == expected_invalid
     assert messenger.commands == []
 
 
@@ -272,7 +285,8 @@ def test_newgame_clears_passwords_and_restarts(bot):
     assert ("clear_pw", 1, None) in messenger.commands
     assert ("restart", None, None) in messenger.commands
     assert list(state_store.iter_company_passwords()) == []
-    assert messenger.private_messages[-2:] == [
-        (31, "[EN] Clearing all company passwords and starting a new game."),
-        (31, "[DE] Alle Firmenpasswörter werden gelöscht und ein neues Spiel wird gestartet."),
+    expected_started = [
+        (31, line)
+        for line in core.messages.get_lines("newgame_started")
     ]
+    assert messenger.private_messages[-len(expected_started) :] == expected_started
