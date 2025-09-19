@@ -7,9 +7,9 @@
   ],
   "help": [
     "[EN] Available commands: !help, !rules, !pw <password>, !reset, !confirm.",
-    "[EN] Open the player selection (Players button or Ctrl+P), select {bot_name} and use the whisper function to send !pw <password> privately.",
+    "[EN] Open the player selection via the Online Players button (icon with the person in a top hat), select {bot_name} and use the whisper function to send !pw <password> privately.",
     "[DE] Verfügbare Befehle: !help, !rules, !pw <passwort>, !reset, !confirm.",
-    "[DE] Öffne die Spielerauswahl (Spieler-Button oder Strg+P), wähle {bot_name} und nutze die Flüstern-Funktion, um !pw <passwort> privat zu senden."
+    "[DE] Öffne die Spielerliste über den \"Online-Spieler\"-Button (Symbol mit dem Mann im Zylinder), wähle {bot_name} und nutze die Flüstern-Funktion, um !pw <passwort> privat zu senden."
   ],
   "rules": [
     "[EN] 1. Respect other players.",
@@ -18,9 +18,9 @@
     "[DE] 2. Blockiere keine Strecken."
   ],
   "password_instructions": [
-    "[EN] Whisper {bot_name} via the player selection (Players button or Ctrl+P) using !pw <password> to protect your company.",
+    "[EN] Whisper {bot_name} via the player selection opened through the Online Players button (icon with the person in a top hat) using !pw <password> to protect your company.",
     "[EN] The bot will automatically restore the saved password after server restarts.",
-    "[DE] Flüstere {bot_name} über die Spielerauswahl (Spieler-Button oder Strg+P) mit !pw <passwort>, um deine Firma zu schützen.",
+    "[DE] Flüstere {bot_name} über die Spielerliste, die du über den \"Online-Spieler\"-Button (Symbol mit dem Mann im Zylinder) öffnest, mit !pw <passwort>, um deine Firma zu schützen.",
     "[DE] Nach Serverneustarts setzt der Bot das gespeicherte Passwort automatisch wieder."
   ],
   "password_whisper_only": [
