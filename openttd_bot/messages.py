@@ -170,10 +170,10 @@ class MessageCatalog:
 
         return key in self.data
 
-    def merge_sections(self, lines: Iterable[str], joiner: str = "\n") -> list[str]:
-        """Merge lines that are grouped by language markers into larger blocks."""
+    def merge_sections(self, lines: Iterable[str]) -> list[str]:
+        """Collapse repeated language section headers while preserving order."""
 
-        blocks: "OrderedDict[str, list[str]]" = OrderedDict()
+        blocks: "OrderedDict[str | None, list[str]]" = OrderedDict()
         current_section: str | None = None
 
         for line in lines:
@@ -181,31 +181,21 @@ class MessageCatalog:
             header = _SECTION_HEADER_RE.match(stripped)
             if header:
                 section = header.group("section")
-                block = blocks.get(section)
-                if block is None:
-                    block = [line]
-                    blocks[section] = block
-                else:
-                    if block and block[-1].strip():
-                        block.append("")
+                block = blocks.setdefault(section, [])
+                if not block:
                     block.append(line)
                 current_section = section
                 continue
 
-            if current_section is None:
-                section_key: str = ""
-            else:
-                section_key = current_section
-
-            block = blocks.setdefault(section_key, [])
+            block = blocks.setdefault(current_section, [])
             block.append(line)
 
         merged: list[str] = []
-        for _section, block in blocks.items():
+        for block in blocks.values():
             trimmed = _trim_empty_edges(block)
             if not trimmed:
                 continue
-            merged.append(joiner.join(trimmed))
+            merged.extend(trimmed)
 
         return merged
 

@@ -91,8 +91,15 @@ def test_merge_sections_combines_language_blocks():
 
     merged = catalog.merge_sections(lines)
 
-    assert len(merged) == 2
-    eng_block, de_block = merged
+    assert merged.count("---------------------[ENG]---------------------") == 1
+    assert merged.count("---------------------[DE]---------------------") == 1
+
+    eng_index = merged.index("---------------------[ENG]---------------------")
+    de_index = merged.index("---------------------[DE]---------------------")
+    assert eng_index < de_index
+
+    eng_block = " ".join(merged[eng_index + 1 : de_index])
+    de_block = " ".join(merged[de_index + 1 :])
     assert "Welcome Alice!" in eng_block
     assert "Available commands" in eng_block
     assert "Willkommen Alice!" in de_block
