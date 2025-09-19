@@ -19,8 +19,9 @@ Ein Python-Bot, der über den Admin-Port eines OpenTTD-Servers läuft und dabei 
    python -m pip install -r <(printf 'pyOpenTTDAdmin>=1.0.2\n')
    ```
 
-2. Stelle sicher, dass sich das Verzeichnis `openttd_bot` aus diesem Repository im selben Ordner wie `bot.py` befindet. Wenn du
-   den Bot in einem Container betreibst, musst du daher das komplette Projektverzeichnis mounten.
+2. Stelle sicher, dass sich das Verzeichnis `openttd_bot` im selben Ordner wie `bot.py` befindet. Im Git-Repository ist dies
+   bereits so vorbereitet; wenn du den Bot in einem Container betreibst, mountest du daher am besten das komplette
+   Projektverzeichnis.
 
 3. Umgebungsvariablen setzen (siehe Tabelle unten) und anschließend den Bot starten:
 
@@ -187,8 +188,8 @@ Veröffentlicht unter der MIT-Lizenz (siehe `LICENSE`).
    python -m pip install -r <(printf 'pyOpenTTDAdmin>=1.0.2\n')
    ```
 
-2. Place the `openttd_bot` directory from this repository next to `bot.py`. When running inside a container you need to mount
-   the entire project directory so both `bot.py` and the package folder are available.
+2. Make sure the `openttd_bot` directory sits next to `bot.py`. The repository already ships in this layout; when running
+   inside a container, mount the entire project directory so the script and package stay side by side.
 
 3. Set the required environment variables (see table below) and start the bot:
 
