@@ -212,10 +212,13 @@ class BotCore:
             "bot_name": self.config.bot_name,
             "server_name": self.server_name or "OpenTTD",
         }
+        combined_lines: list[str] = []
         for key in ("welcome", "help", "rules"):
-            lines = self.messages.get_lines(key, **context)
-            if lines:
-                self.messenger.send_private_lines(client.client_id, lines)
+            combined_lines.extend(self.messages.get_lines(key, **context))
+
+        blocks = [block for block in self.messages.merge_sections(combined_lines) if block]
+        if blocks:
+            self.messenger.send_private_lines(client.client_id, blocks)
 
     def _send_password_instructions(self, client: ClientState) -> None:
         context = {
