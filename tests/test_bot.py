@@ -82,6 +82,23 @@ def make_chat(client_id: int, message: str, dest: ChatDestTypes = ChatDestTypes.
     )
 
 
+def test_merge_sections_combines_language_blocks():
+    catalog = MessageCatalog(dict(DEFAULT_MESSAGES))
+    lines = []
+    lines.extend(catalog.get_lines("welcome", client_name="Alice", bot_name="ServerBot"))
+    lines.extend(catalog.get_lines("help", bot_name="ServerBot"))
+    lines.extend(catalog.get_lines("rules"))
+
+    merged = catalog.merge_sections(lines)
+
+    assert len(merged) == 2
+    eng_block, de_block = merged
+    assert "Welcome Alice!" in eng_block
+    assert "Available commands" in eng_block
+    assert "Willkommen Alice!" in de_block
+    assert "Verfügbare Befehle" in de_block
+
+
 def test_join_sends_welcome_help_and_rules(bot):
     core, messenger, _ = bot
     core.on_welcome(SimpleNamespace(server_name="TestServer"))
@@ -93,7 +110,8 @@ def test_join_sends_welcome_help_and_rules(bot):
     )
     expected_lines.extend(core.messages.get_lines("help", bot_name=bot_name))
     expected_lines.extend(core.messages.get_lines("rules"))
-    expected = [(1, line) for line in expected_lines]
+    expected_blocks = core.messages.merge_sections(expected_lines)
+    expected = [(1, block) for block in expected_blocks]
     assert messenger.private_messages[: len(expected)] == expected
 
 

@@ -2,14 +2,19 @@
 
 from __future__ import annotations
 
+from collections import OrderedDict
 from dataclasses import dataclass
 import json
 import logging
 from pathlib import Path
+import re
 from typing import Any, Iterable, Mapping
 
 
 LOGGER = logging.getLogger(__name__)
+
+
+_SECTION_HEADER_RE = re.compile(r"^-+\[(?P<section>[^\]]+)\]-+$")
 
 
 DEFAULT_MESSAGES: dict[str, Any] = {
@@ -164,3 +169,54 @@ class MessageCatalog:
         """Return whether a message is configured for *key*."""
 
         return key in self.data
+
+    def merge_sections(self, lines: Iterable[str], joiner: str = "\n") -> list[str]:
+        """Merge lines that are grouped by language markers into larger blocks."""
+
+        blocks: "OrderedDict[str, list[str]]" = OrderedDict()
+        current_section: str | None = None
+
+        for line in lines:
+            stripped = line.strip()
+            header = _SECTION_HEADER_RE.match(stripped)
+            if header:
+                section = header.group("section")
+                block = blocks.get(section)
+                if block is None:
+                    block = [line]
+                    blocks[section] = block
+                else:
+                    if block and block[-1].strip():
+                        block.append("")
+                    block.append(line)
+                current_section = section
+                continue
+
+            if current_section is None:
+                section_key: str = ""
+            else:
+                section_key = current_section
+
+            block = blocks.setdefault(section_key, [])
+            block.append(line)
+
+        merged: list[str] = []
+        for _section, block in blocks.items():
+            trimmed = _trim_empty_edges(block)
+            if not trimmed:
+                continue
+            merged.append(joiner.join(trimmed))
+
+        return merged
+
+
+def _trim_empty_edges(lines: list[str]) -> list[str]:
+    start = 0
+    end = len(lines)
+
+    while start < end and not lines[start].strip():
+        start += 1
+    while end > start and not lines[end - 1].strip():
+        end -= 1
+
+    return lines[start:end]
