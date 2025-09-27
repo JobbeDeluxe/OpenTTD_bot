@@ -158,6 +158,14 @@ class BotRunner:
             except KeyboardInterrupt:  # pragma: no cover - handled by runner
                 LOGGER.info("Interrupted by user")
                 raise
+            except ConnectionRefusedError as exc:
+                LOGGER.error(
+                    "Unable to connect to %s:%s (%s). Is the server online and is the admin port open?",
+                    self.config.host,
+                    self.config.admin_port,
+                    exc,
+                )
+                time.sleep(self.config.reconnect_delay_seconds)
             except Exception as exc:  # pragma: no cover - connection errors
                 LOGGER.exception("Connection error: %s", exc)
                 time.sleep(self.config.reconnect_delay_seconds)
